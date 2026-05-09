@@ -1,46 +1,57 @@
-# Astro Starter Kit: Basics
+# Cinevasion CMS (Headless JSON Static CMS)
 
-```sh
-npm create astro@latest -- --template basics
+Ce projet est un CMS Headless qui permet de gérer du contenu statique via une interface d'administration. Chaque action (création/modification) génère des fichiers JSON et effectue un commit automatique dans le repository Git.
+
+## Fonctionnement
+
+- **Interface d'administration** : Accessible via `/admin/licences`.
+- **Génération JSON** : Les fichiers sont créés dans un répertoire externe (configurable).
+- **Index Central** : Un fichier `index.json` liste tous les contenus.
+- **Git** : Chaque modification déclenche un commit et un push automatique dans le dépôt de données externe.
+
+## Configuration du dépôt de données
+
+Par défaut, le CMS cherche un dossier nommé `cinevasion-data` au même niveau que le dossier du projet CMS.
+
+Vous pouvez configurer le chemin via la variable d'environnement `CMS_DATA_DIR` :
+
+```bash
+# Exemple sur Windows (PowerShell)
+$env:CMS_DATA_DIR = "C:\chemin\vers\votre\repo-data"
+npm run dev
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+Le répertoire cible doit être un dépôt Git initialisé avec un "remote" configuré pour que le `push` fonctionne.
 
-## 🚀 Project Structure
+## Structure des données (dans le dépôt externe)
 
-Inside of your Astro project, you'll see the following folders and files:
+- `index.json` : Listing global.
+- `posts/[slug].json` : Fichiers de contenu individuels.
 
-```text
-/
-├── public/
-│   └── favicon.svg
-├── src
-│   ├── assets
-│   │   └── astro.svg
-│   ├── components
-│   │   └── Welcome.astro
-│   ├── layouts
-│   │   └── Layout.astro
-│   └── pages
-│       └── index.astro
-└── package.json
-```
+## Installation et lancement
 
-To learn more about the folder structure of an Astro project, refer to [our guide on project structure](https://docs.astro.build/en/basics/project-structure/).
+1. Installez les dépendances :
+   ```bash
+   npm install
+   ```
 
-## 🧞 Commands
+2. Lancez le serveur de développement :
+   ```bash
+   npm run dev
+   ```
 
-All commands are run from the root of the project, from a terminal:
+3. Accédez à l'administration : `http://localhost:4321/admin/licences`
+
+## 🚀 Commandes
 
 | Command                   | Action                                           |
 | :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+| `npm install`             | Installe les dépendances                         |
+| `npm run dev`             | Lance le serveur de développement (SSR)          |
+| `npm run build`           | Build l'application pour la production           |
+| `npm run preview`         | Prévisualise le build localement                 |
 
-## 👀 Want to learn more?
+## 👀 En savoir plus
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+- Basé sur [Astro](https://astro.build) en mode SSR.
+- Utilise [simple-git](https://www.npmjs.com/package/simple-git) pour les commits automatiques.

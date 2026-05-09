@@ -1,6 +1,6 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
-import { savePost, saveImage, type Movie } from '../../../lib/cms';
+import { saveLicence, saveImage, type Movie } from '../../../lib/cms';
 
 const method = Astro.request.method;
 
@@ -38,8 +38,8 @@ if (method === 'POST') {
     }
 
     if (slug && title) {
-      await savePost({ slug, title, movies });
-      return Astro.redirect('/admin/posts');
+      await saveLicence({ slug, title, movies });
+      return Astro.redirect('/admin/licences');
     }
   } catch (e) {
     console.error(e);
@@ -49,21 +49,21 @@ if (method === 'POST') {
 
 <Layout>
     <div class="admin-header">
-        <a href="/admin/posts" class="back-link">← Retour aux articles</a>
-        <h1>Créer un nouvel article</h1>
+        <a href="/admin/licences" class="back-link">← Retour aux licences</a>
+        <h1>Créer une nouvelle licence</h1>
     </div>
 
     <section class="admin-section">
         <div class="card">
             <form method="POST" enctype="multipart/form-data" class="admin-form">
                 <div class="form-group">
-                    <label for="title">Titre de l'article</label>
+                    <label for="title">Titre de la licence</label>
                     <input type="text" id="title" name="title" placeholder="ex: Les meilleurs films de 2024" required />
                 </div>
 
                 <div class="form-group">
                     <label for="slug">Slug (Identifiant unique)</label>
-                    <input type="text" id="slug" name="slug" placeholder="ex: mon-article" required />
+                    <input type="text" id="slug" name="slug" placeholder="ex: ma-licence" required />
                 </div>
 
                 <div class="movies-section">
@@ -75,8 +75,8 @@ if (method === 'POST') {
                 </div>
 
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">Publier l'article</button>
-                    <a href="/admin/posts" class="btn btn-secondary">Annuler</a>
+                    <button type="submit" class="btn btn-primary">Publier la licence</button>
+                    <a href="/admin/licences" class="btn btn-secondary">Annuler</a>
                 </div>
             </form>
         </div>

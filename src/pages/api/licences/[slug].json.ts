@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { getPost } from '../../../lib/cms';
+import { getLicence } from '../../../lib/cms';
 
 export const GET: APIRoute = async ({ params }) => {
   const { slug } = params;
@@ -13,10 +13,10 @@ export const GET: APIRoute = async ({ params }) => {
     });
   }
 
-  const post = await getPost(slug);
+  const post = await getLicence(slug);
 
   if (!post) {
-    return new Response(JSON.stringify({ error: 'Article non trouvé' }), {
+    return new Response(JSON.stringify({ error: 'Licence non trouvée' }), {
       status: 404,
       headers: {
         'Content-Type': 'application/json'

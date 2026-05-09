@@ -1,17 +1,17 @@
 ---
 import Layout from '../../../../layouts/Layout.astro';
-import { getPost, savePost, saveImage, type Movie, type Post } from '../../../../lib/cms';
+import { getLicence, saveLicence, saveImage, type Movie, type Licence } from '../../../../lib/cms';
 
 const { slug } = Astro.params;
 
 if (!slug) {
-    return Astro.redirect('/admin/posts');
+    return Astro.redirect('/admin/licences');
 }
 
-const post = await getPost(slug) as Post;
+const post = await getLicence(slug) as Licence;
 
 if (!post) {
-    return Astro.redirect('/admin/posts');
+    return Astro.redirect('/admin/licences');
 }
 
 const method = Astro.request.method;
@@ -50,8 +50,8 @@ if (method === 'POST') {
     }
 
     if (title) {
-        await savePost({ slug, title, movies });
-        return Astro.redirect(`/admin/posts/${slug}`);
+        await saveLicence({ slug, title, movies });
+        return Astro.redirect(`/admin/licences/${slug}`);
     }
   } catch (e) {
     console.error(e);
@@ -61,15 +61,15 @@ if (method === 'POST') {
 
 <Layout>
     <div class="admin-header">
-        <a href={`/admin/posts/${slug}`} class="back-link">← Annuler et retour</a>
-        <h1>Modifier l'article</h1>
+        <a href={`/admin/licences/${slug}`} class="back-link">← Annuler et retour</a>
+        <h1>Modifier la licence</h1>
     </div>
 
     <section class="admin-section">
         <div class="card">
             <form method="POST" enctype="multipart/form-data" class="admin-form">
                 <div class="form-group">
-                    <label for="title">Titre de l'article</label>
+                    <label for="title">Titre de la licence</label>
                     <input type="text" id="title" name="title" value={post.title} required />
                 </div>
 
@@ -119,7 +119,7 @@ if (method === 'POST') {
 
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
-                    <a href={`/admin/posts/${slug}`} class="btn btn-secondary">Annuler</a>
+                    <a href={`/admin/licences/${slug}`} class="btn btn-secondary">Annuler</a>
                 </div>
             </form>
         </div>
@@ -165,9 +165,9 @@ if (method === 'POST') {
 
     function setupRemoveButtons() {
         document.querySelectorAll('.remove-movie-btn').forEach(btn => {
-            btn.onclick = (e) => {
+            btn.addEventListener('click', (e) => {
                 (e.target as HTMLElement).closest('.movie-card')?.remove();
-            };
+            });
         });
     }
 

@@ -1,27 +1,27 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
-import { getPost } from '../../../lib/cms';
+import { getLicence } from '../../../lib/cms';
 
 const { slug } = Astro.params;
 
 if (!slug) {
-    return Astro.redirect('/admin/posts');
+    return Astro.redirect('/admin/licences');
 }
 
-const post = await getPost(slug);
+const post = await getLicence(slug);
 
 if (!post) {
-    return Astro.redirect('/admin/posts');
+    return Astro.redirect('/admin/licences');
 }
 ---
 
 <Layout>
     <div class="admin-header">
-        <a href="/admin/posts" class="back-link">← Retour aux articles</a>
+        <a href="/admin/licences" class="back-link">← Retour aux licences</a>
         <div class="header-content">
             <h1>{post.title}</h1>
             <div class="actions">
-                <a href={`/admin/posts/${slug}/edit`} class="btn btn-primary">Modifier</a>
+                <a href={`/admin/licences/${slug}/edit`} class="btn btn-primary">Modifier</a>
                 <a href={`/api/licences/${slug}.json`} target="_blank" class="btn btn-secondary">Voir le JSON</a>
             </div>
         </div>
@@ -59,9 +59,9 @@ if (!post) {
             </div>
         ) : (
             <div class="card no-movies">
-                <p>Aucun film n'est associé à cet article.</p>
+                <p>Aucun film n'est associé à cette licence.</p>
                 <div class="actions" style="margin-top: 1rem;">
-                    <a href={`/admin/posts/${slug}/edit`} class="btn btn-primary">Ajouter des films</a>
+                    <a href={`/admin/licences/${slug}/edit`} class="btn btn-primary">Ajouter des films</a>
                 </div>
             </div>
         )}

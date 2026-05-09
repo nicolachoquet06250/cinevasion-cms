@@ -1,16 +1,23 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
-import { getPosts } from '../../../lib/cms';
+import { getLicences, getLicence } from '../../../lib/cms';
 
-const posts = await getPosts();
+const licencesSummary = await getLicences();
+const licences = await Promise.all(licencesSummary.map(async (summary: any) => {
+    const fullPost = await getLicence(summary.slug);
+    return {
+        ...summary,
+        movieCount: fullPost?.movies?.length || 0
+    };
+}));
 ---
 
 <Layout>
     <div class="admin-header">
         <div class="header-top">
-            <h1>Administration des articles</h1>
-            <a href="/admin/posts/new" class="btn btn-primary">
-                <span>+</span> Nouvel article
+            <h1>Administration des licences</h1>
+            <a href="/admin/licences/new" class="btn btn-primary">
+                <span>+</span> Nouvelle licence
             </a>
         </div>
         <p>Gérez vos publications stockées dans le dépôt externe.</p>
@@ -18,16 +25,21 @@ const posts = await getPosts();
 
     <section class="admin-section">
         <div class="section-header">
-            <h2>Articles récents</h2>
-            <span class="count">{posts.length} articles</span>
+            <h2>Licences récentes</h2>
+            <span class="count">{licences.length} licence{licences.length > 1 ? 's' : ''}</span>
         </div>
         
         <div class="post-grid">
-            {posts.map((post: any) => (
-                <a href={`/admin/posts/${post.slug}`} class="post-card">
+            {licences.map((post: any) => (
+                <a href={`/admin/licences/${post.slug}`} class="post-card">
                     <div class="post-info">
                         <strong>{post.title}</strong>
                         <span class="slug">/{post.slug}</span>
+                        {post.movieCount !== undefined && (
+                            <span class="movie-count">
+                                🎬 {post.movieCount} film{post.movieCount > 1 ? 's' : ''}
+                            </span>
+                        )}
                         <div class="meta">
                              <span>📅 {new Date(post.date).toLocaleDateString('fr-FR')}</span>
                              <span class="view-link">Gérer →</span>
@@ -36,10 +48,10 @@ const posts = await getPosts();
                 </a>
             ))}
         </div>
-        {posts.length === 0 && (
+        {licences.length === 0 && (
             <div class="empty-state">
-                <p>Aucun article pour le moment.</p>
-                <a href="/admin/posts/new" class="btn btn-primary" style="margin-top: 1rem;">Créer votre premier article</a>
+                <p>Aucune licence pour le moment.</p>
+                <a href="/admin/licences/new" class="btn btn-primary" style="margin-top: 1rem;">Créer votre première licence</a>
             </div>
         )}
     </section>
@@ -132,12 +144,20 @@ const posts = await getPosts();
 
     .slug {
         font-family: ui-monospace, monospace;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         color: var(--primary);
         background: rgba(99, 102, 241, 0.1);
-        padding: 0.2rem 0.5rem;
+        padding: 0.1rem 0.4rem;
         border-radius: 4px;
         align-self: flex-start;
+    }
+
+    .movie-count {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
     }
 
     .meta {

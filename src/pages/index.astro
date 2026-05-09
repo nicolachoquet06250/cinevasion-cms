@@ -1,11 +1,149 @@
 ---
-import Welcome from '../components/Welcome.astro';
 import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
 ---
 
 <Layout>
-	<Welcome />
+	<section class="hero">
+		<h1>Bienvenue sur Cinevasion CMS</h1>
+		<p class="subtitle">La plateforme d'administration simple et intuitive pour votre contenu statique.</p>
+		<div class="actions">
+			<a href="/admin/licences" class="btn btn-primary">
+				Gérer les licences
+			</a>
+		</div>
+	</section>
+
+	<section class="features">
+		<div class="card">
+			<div class="card-icon">📁</div>
+			<h3>Gestion JSON</h3>
+			<p>Modifiez vos données structurées sans toucher au code. Les fichiers sont gérés de manière transparente.</p>
+		</div>
+		<div class="card">
+			<div class="card-icon">🚀</div>
+			<h3>Performance</h3>
+			<p>CMS ultra-rapide basé sur Astro, conçu pour la rapidité et l'efficacité.</p>
+		</div>
+		<div class="card">
+			<div class="card-icon">🛠️</div>
+			<h3>Configuration</h3>
+			<p>Le dépôt externe est actuellement configuré sur :<br/><code>{import.meta.env.CMS_DATA_DIR || '../cinevasion-data'}</code></p>
+		</div>
+	</section>
 </Layout>
+
+<style>
+	.hero {
+		text-align: center;
+		padding: 8rem 1rem;
+		background: radial-gradient(circle at top center, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+		border-radius: 2rem;
+		margin-bottom: 6rem;
+		position: relative;
+		overflow: hidden;
+	}
+
+	.hero::before {
+		content: '';
+		position: absolute;
+		top: -50%;
+		left: -50%;
+		width: 200%;
+		height: 200%;
+		background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+		opacity: 0.05;
+		pointer-events: none;
+	}
+
+	h1 {
+		font-size: clamp(2.5rem, 8vw, 4.5rem);
+		margin-bottom: 1.5rem;
+		background: linear-gradient(to bottom right, #fff 30%, var(--text-muted));
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		line-height: 1.1;
+	}
+
+	.subtitle {
+		font-size: clamp(1.1rem, 3vw, 1.5rem);
+		color: var(--text-muted);
+		max-width: 700px;
+		margin: 0 auto 3rem;
+		line-height: 1.6;
+	}
+
+	.actions {
+		display: flex;
+		gap: 1rem;
+		justify-content: center;
+	}
+
+	.btn {
+		display: inline-flex;
+		align-items: center;
+		padding: 1rem 2.5rem;
+		border-radius: 9999px;
+		font-weight: 600;
+		text-decoration: none;
+		transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+		font-size: 1.1rem;
+	}
+
+	.btn-primary {
+		background: var(--primary);
+		color: white;
+		box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+	}
+
+	.btn-primary:hover {
+		background: var(--primary-hover);
+		transform: scale(1.05);
+		box-shadow: 0 0 30px rgba(99, 102, 241, 0.6);
+	}
+
+	.features {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+		gap: 2.5rem;
+	}
+
+	.card {
+		background: var(--card-bg);
+		padding: 3rem 2rem;
+		border-radius: 1.5rem;
+		border: 1px solid var(--border);
+		transition: all 0.3s ease;
+		position: relative;
+	}
+
+	.card:hover {
+		border-color: var(--primary);
+		transform: translateY(-10px);
+		box-shadow: 0 20px 40px -20px rgba(0, 0, 0, 0.5);
+	}
+
+	.card-icon {
+		font-size: 3rem;
+		margin-bottom: 1.5rem;
+		display: block;
+	}
+
+	.card h3 {
+		font-size: 1.5rem;
+		margin-bottom: 1rem;
+	}
+
+	.card p {
+		color: var(--text-muted);
+		line-height: 1.7;
+	}
+
+	@media (max-width: 640px) {
+		.hero {
+			padding: 4rem 1rem;
+		}
+		.actions {
+			flex-direction: column;
+		}
+	}
+</style>
