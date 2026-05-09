@@ -1,0 +1,66 @@
+---
+import { getPosts, savePost } from '../../../lib/cms';
+
+const method = Astro.request.method;
+
+if (method === 'POST') {
+  try {
+    const formData = await Astro.request.formData();
+    const slug = formData.get('slug')?.toString();
+    const title = formData.get('title')?.toString();
+    const content = formData.get('content')?.toString();
+
+    if (slug && title && content) {
+      await savePost({ slug, title, content });
+      return Astro.redirect('/admin/posts');
+    }
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+const posts = await getPosts();
+---
+
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <title>Admin - Cinevasion CMS</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+        form { display: flex; flex-direction: column; gap: 1rem; border: 1px solid #ccc; padding: 1rem; margin-bottom: 2rem; }
+        input, textarea { padding: 0.5rem; }
+        .post-list { list-style: none; padding: 0; }
+        .post-item { border-bottom: 1px solid #eee; padding: 1rem 0; }
+    </style>
+</head>
+<body>
+    <h1>Administration CMS</h1>
+
+    <section>
+        <h2>Créer / Modifier un article</h2>
+        <form method="POST">
+            <input type="text" name="slug" placeholder="Slug (ex: mon-article)" required />
+            <input type="text" name="title" placeholder="Titre" required />
+            <textarea name="content" placeholder="Contenu" rows="5" required></textarea>
+            <button type="submit">Enregistrer, Commit et Push</button>
+        </form>
+    </section>
+
+    <section>
+        <h2>Articles existants</h2>
+        <ul class="post-list">
+            {posts.map((post: any) => (
+                <li class="post-item">
+                    <strong>{post.title}</strong> ({post.slug})<br />
+                    <small>Date: {post.date} - <a href={post.url} target="_blank">Voir le JSON</a></small>
+                </li>
+            ))}
+        </ul>
+        {posts.length === 0 && <p>Aucun article pour le moment.</p>}
+    </section>
+
+    <p><a href="/">Retour à l'accueil</a></p>
+</body>
+</html>

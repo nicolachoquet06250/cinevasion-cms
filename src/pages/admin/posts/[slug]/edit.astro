@@ -1,0 +1,177 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import { getPost, savePost } from '../../../lib/cms';
+
+const { slug } = Astro.params;
+
+if (!slug) {
+    return Astro.redirect('/admin/posts');
+}
+
+const post = await getPost(slug);
+
+if (!post) {
+    return Astro.redirect('/admin/posts');
+}
+
+const method = Astro.request.method;
+
+if (method === 'POST') {
+  try {
+    const formData = await Astro.request.formData();
+    const title = formData.get('title')?.toString();
+    const content = formData.get('content')?.toString();
+
+    if (title && content) {
+      await savePost({ slug, title, content });
+      return Astro.redirect(`/admin/posts/${slug}`);
+    }
+  } catch (e) {
+    console.error(e);
+  }
+}
+---
+
+<Layout>
+    <div class="admin-header">
+        <a href={`/admin/posts/${slug}`} class="back-link">← Annuler et retour</a>
+        <h1>Modifier l'article</h1>
+    </div>
+
+    <section class="admin-section">
+        <div class="card">
+            <form method="POST" class="admin-form">
+                <div class="form-group">
+                    <label for="slug-readonly">Slug (non modifiable)</label>
+                    <input type="text" id="slug-readonly" value={slug} disabled class="input-disabled" />
+                </div>
+                <div class="form-group">
+                    <label for="title">Titre</label>
+                    <input type="text" id="title" name="title" value={post.title} required />
+                </div>
+                <div class="form-group">
+                    <label for="content">Contenu</label>
+                    <textarea id="content" name="content" rows="15" required>{post.content}</textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
+                    <a href={`/admin/posts/${slug}`} class="btn btn-secondary">Annuler</a>
+                </div>
+            </form>
+        </div>
+    </section>
+</Layout>
+
+<style>
+    .admin-header {
+        margin-bottom: 3rem;
+    }
+
+    .back-link {
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 500;
+        display: inline-block;
+        margin-bottom: 1rem;
+    }
+
+    .admin-header h1 {
+        font-size: 2.5rem;
+        background: linear-gradient(to right, #fff, var(--primary));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .card {
+        background: var(--card-bg);
+        padding: 2.5rem;
+        border-radius: 1.5rem;
+        border: 1px solid var(--border);
+        box-shadow: 0 10px 30px -10px rgba(0,0,0,0.3);
+    }
+
+    .admin-form {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    label {
+        font-weight: 600;
+        font-size: 0.95rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    input, textarea {
+        padding: 1rem;
+        background: #0f172a;
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+        font-family: inherit;
+        font-size: 1rem;
+        color: white;
+        transition: all 0.2s;
+    }
+
+    input:focus, textarea:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
+    }
+
+    .input-disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        background: rgba(15, 23, 42, 0.5);
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem 2rem;
+        border-radius: 0.75rem;
+        font-weight: 700;
+        text-decoration: none;
+        transition: all 0.3s;
+        cursor: pointer;
+        border: none;
+        font-size: 1rem;
+    }
+
+    .btn-primary {
+        background: var(--primary);
+        color: white;
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+    }
+
+    .btn-primary:hover {
+        background: var(--primary-hover);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+    }
+
+    .btn-secondary {
+        background: rgba(255, 255, 255, 0.05);
+        color: white;
+        border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+</style>

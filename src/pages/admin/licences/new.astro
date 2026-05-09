@@ -1,0 +1,299 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import { savePost, saveImage, type Movie } from '../../../lib/cms';
+
+const method = Astro.request.method;
+
+if (method === 'POST') {
+  try {
+    const formData = await Astro.request.formData();
+    const slug = formData.get('slug')?.toString();
+    const title = formData.get('title')?.toString();
+
+    const movieTitles = formData.getAll('movie_title');
+    const movieSynopses = formData.getAll('movie_synopsis');
+    const movieDates = formData.getAll('movie_releaseDate');
+    const movieTrailers = formData.getAll('movie_trailerUrl');
+    const movieImages = formData.getAll('movie_image'); // File objects
+
+    const movies: Movie[] = [];
+
+    for (let i = 0; i < movieTitles.length; i++) {
+        const imageFile = movieImages[i] as File;
+        let imageUrl = '';
+        
+        if (imageFile && imageFile.size > 0) {
+            const buffer = Buffer.from(await imageFile.arrayBuffer());
+            const filename = `${slug}-${Date.now()}-${imageFile.name}`;
+            imageUrl = await saveImage(filename, buffer);
+        }
+
+        movies.push({
+            title: movieTitles[i].toString(),
+            synopsis: movieSynopses[i].toString(),
+            releaseDate: movieDates[i].toString(),
+            trailerUrl: movieTrailers[i]?.toString() || undefined,
+            image: imageUrl
+        });
+    }
+
+    if (slug && title) {
+      await savePost({ slug, title, movies });
+      return Astro.redirect('/admin/posts');
+    }
+  } catch (e) {
+    console.error(e);
+  }
+}
+---
+
+<Layout>
+    <div class="admin-header">
+        <a href="/admin/posts" class="back-link">← Retour aux articles</a>
+        <h1>Créer un nouvel article</h1>
+    </div>
+
+    <section class="admin-section">
+        <div class="card">
+            <form method="POST" enctype="multipart/form-data" class="admin-form">
+                <div class="form-group">
+                    <label for="title">Titre de l'article</label>
+                    <input type="text" id="title" name="title" placeholder="ex: Les meilleurs films de 2024" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="slug">Slug (Identifiant unique)</label>
+                    <input type="text" id="slug" name="slug" placeholder="ex: mon-article" required />
+                </div>
+
+                <div class="movies-section">
+                    <h2>Films</h2>
+                    <div id="movies-container">
+                        <!-- Les films seront ajoutés ici dynamiquement -->
+                    </div>
+                    <button type="button" id="add-movie-btn" class="btn btn-secondary">Ajouter un film</button>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Publier l'article</button>
+                    <a href="/admin/posts" class="btn btn-secondary">Annuler</a>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <template id="movie-template">
+        <div class="movie-card">
+            <div class="movie-header">
+                <h3>Nouveau film</h3>
+                <button type="button" class="remove-movie-btn">&times;</button>
+            </div>
+            <div class="movie-grid">
+                <div class="form-group">
+                    <label>Titre du film</label>
+                    <input type="text" name="movie_title" required />
+                </div>
+                <div class="form-group">
+                    <label>Date de sortie</label>
+                    <input type="date" name="movie_releaseDate" required />
+                </div>
+                <div class="form-group">
+                    <label>Bande annonce (URL optionnelle)</label>
+                    <input type="url" name="movie_trailerUrl" />
+                </div>
+                <div class="form-group">
+                    <label>Image du film</label>
+                    <input type="file" name="movie_image" accept="image/*" required />
+                </div>
+                <div class="form-group full-width">
+                    <label>Synopsis</label>
+                    <textarea name="movie_synopsis" rows="4" required></textarea>
+                </div>
+            </div>
+        </div>
+    </template>
+</Layout>
+
+<script>
+    const container = document.getElementById('movies-container');
+    const addBtn = document.getElementById('add-movie-btn');
+    const template = document.getElementById('movie-template') as HTMLTemplateElement;
+
+    addBtn?.addEventListener('click', () => {
+        const clone = template.content.cloneNode(true) as HTMLElement;
+        const removeBtn = clone.querySelector('.remove-movie-btn');
+        
+        removeBtn?.addEventListener('click', (e) => {
+            (e.target as HTMLElement).closest('.movie-card')?.remove();
+        });
+
+        container?.appendChild(clone);
+    });
+</script>
+
+<style>
+    .admin-header {
+        margin-bottom: 3rem;
+    }
+
+    .back-link {
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 500;
+        display: inline-block;
+        margin-bottom: 1rem;
+    }
+
+    .admin-header h1 {
+        font-size: 2.5rem;
+        background: linear-gradient(to right, #fff, var(--primary));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .card {
+        background: var(--card-bg);
+        padding: 2.5rem;
+        border-radius: 1.5rem;
+        border: 1px solid var(--border);
+        box-shadow: 0 10px 30px -10px rgba(0,0,0,0.3);
+    }
+
+    .admin-form {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .full-width {
+        grid-column: 1 / -1;
+    }
+
+    label {
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    input, textarea {
+        padding: 1rem;
+        background: #0f172a;
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+        font-family: inherit;
+        font-size: 1rem;
+        color: white;
+        transition: all 0.2s;
+    }
+
+    input:focus, textarea:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
+    }
+
+    .movies-section {
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--border);
+    }
+
+    .movies-section h2 {
+        margin-bottom: 1.5rem;
+        font-size: 1.5rem;
+    }
+
+    .movie-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--border);
+        padding: 1.5rem;
+        border-radius: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .movie-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        padding-bottom: 0.75rem;
+    }
+
+    .movie-header h3 {
+        font-size: 1.1rem;
+        color: var(--primary);
+    }
+
+    .remove-movie-btn {
+        background: none;
+        border: none;
+        color: #ef4444;
+        font-size: 1.5rem;
+        cursor: pointer;
+        padding: 0;
+        line-height: 1;
+    }
+
+    .movie-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+
+    @media (max-width: 768px) {
+        .movie-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem 2rem;
+        border-radius: 0.75rem;
+        font-weight: 700;
+        text-decoration: none;
+        transition: all 0.3s;
+        cursor: pointer;
+        border: none;
+        font-size: 1rem;
+    }
+
+    .btn-primary {
+        background: var(--primary);
+        color: white;
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+    }
+
+    .btn-primary:hover {
+        background: var(--primary-hover);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+    }
+
+    .btn-secondary {
+        background: rgba(255, 255, 255, 0.05);
+        color: white;
+        border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+</style>

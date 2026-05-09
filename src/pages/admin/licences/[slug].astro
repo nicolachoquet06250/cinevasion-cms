@@ -1,0 +1,277 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import { getPost } from '../../../lib/cms';
+
+const { slug } = Astro.params;
+
+if (!slug) {
+    return Astro.redirect('/admin/posts');
+}
+
+const post = await getPost(slug);
+
+if (!post) {
+    return Astro.redirect('/admin/posts');
+}
+---
+
+<Layout>
+    <div class="admin-header">
+        <a href="/admin/posts" class="back-link">← Retour aux articles</a>
+        <div class="header-content">
+            <h1>{post.title}</h1>
+            <div class="actions">
+                <a href={`/admin/posts/${slug}/edit`} class="btn btn-primary">Modifier</a>
+                <a href={`/api/licences/${slug}.json`} target="_blank" class="btn btn-secondary">Voir le JSON</a>
+            </div>
+        </div>
+        <div class="meta">
+            <span class="slug">/{post.slug}</span>
+            <span class="date">📅 {new Date(post.date).toLocaleDateString('fr-FR', { dateStyle: 'long' })}</span>
+        </div>
+    </div>
+
+    <section class="admin-section">
+        {post.movies && post.movies.length > 0 ? (
+            <div class="card movies-preview">
+                <h2>Films ({post.movies.length})</h2>
+                <div class="movies-grid">
+                    {post.movies.map((movie: any) => (
+                        <div class="movie-card">
+                            <div class="movie-image">
+                                {movie.image ? (
+                                    <img src={movie.image} alt={movie.title} />
+                                ) : (
+                                    <div class="no-image">Pas d'image</div>
+                                )}
+                            </div>
+                            <div class="movie-info">
+                                <h3>{movie.title}</h3>
+                                <p class="movie-date">📅 Sortie : {new Date(movie.releaseDate).toLocaleDateString('fr-FR')}</p>
+                                <p class="movie-synopsis">{movie.synopsis}</p>
+                                {movie.trailerUrl && (
+                                    <a href={movie.trailerUrl} target="_blank" class="trailer-link">🎬 Bande annonce</a>
+                                )}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        ) : (
+            <div class="card no-movies">
+                <p>Aucun film n'est associé à cet article.</p>
+                <div class="actions" style="margin-top: 1rem;">
+                    <a href={`/admin/posts/${slug}/edit`} class="btn btn-primary">Ajouter des films</a>
+                </div>
+            </div>
+        )}
+    </section>
+</Layout>
+
+<style>
+    /* ... existing styles ... */
+    .movies-preview {
+        margin-top: 2rem;
+    }
+
+    .movies-preview h2 {
+        margin-bottom: 2rem;
+        font-size: 1.5rem;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 1rem;
+    }
+
+    .movies-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 2rem;
+    }
+
+    .movie-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--border);
+        border-radius: 1rem;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .movie-image {
+        aspect-ratio: 16/9;
+        background: #0f172a;
+    }
+
+    .movie-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .no-image {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+
+    .movie-info {
+        padding: 1.5rem;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .movie-info h3 {
+        margin-bottom: 0.5rem;
+        color: var(--primary);
+    }
+
+    .movie-date {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        margin-bottom: 1rem;
+    }
+
+    .movie-synopsis {
+        font-size: 0.95rem;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+        color: #cbd5e1;
+        display: -webkit-box;
+        -webkit-line-clamp: 4;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .trailer-link {
+        margin-top: auto;
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+    .admin-header {
+        margin-bottom: 3rem;
+    }
+
+    .back-link {
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 500;
+        display: inline-block;
+        margin-bottom: 1rem;
+    }
+
+    .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 2rem;
+        flex-wrap: wrap;
+        margin-bottom: 1rem;
+    }
+
+    .header-content h1 {
+        font-size: 2.5rem;
+        background: linear-gradient(to right, #fff, var(--primary));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .actions {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .meta {
+        display: flex;
+        gap: 1.5rem;
+        align-items: center;
+        color: var(--text-muted);
+    }
+
+    .slug {
+        font-family: ui-monospace, monospace;
+        font-size: 1rem;
+        color: var(--primary);
+        background: rgba(99, 102, 241, 0.1);
+        padding: 0.3rem 0.7rem;
+        border-radius: 6px;
+    }
+
+    .card {
+        background: var(--card-bg);
+        padding: 2.5rem;
+        border-radius: 1.5rem;
+        border: 1px solid var(--border);
+        box-shadow: 0 10px 30px -10px rgba(0,0,0,0.3);
+    }
+
+    .content-preview h2 {
+        margin-bottom: 2rem;
+        font-size: 1.5rem;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 1rem;
+    }
+
+    .content-body {
+        line-height: 1.8;
+        font-size: 1.1rem;
+        color: #e2e8f0;
+    }
+
+    .content-body p {
+        margin-bottom: 1.5rem;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.8rem 1.5rem;
+        border-radius: 0.75rem;
+        font-weight: 700;
+        text-decoration: none;
+        transition: all 0.3s;
+        cursor: pointer;
+        border: none;
+        font-size: 0.95rem;
+    }
+
+    .btn-primary {
+        background: var(--primary);
+        color: white;
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+    }
+
+    .btn-primary:hover {
+        background: var(--primary-hover);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+    }
+
+    .btn-secondary {
+        background: rgba(255, 255, 255, 0.05);
+        color: white;
+        border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    @media (max-width: 640px) {
+        .header-content {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .actions {
+            width: 100%;
+        }
+        .btn {
+            flex: 1;
+        }
+    }
+</style>
