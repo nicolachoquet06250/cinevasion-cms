@@ -41,7 +41,7 @@ jobs:
         with:
           host: ${{ secrets.ALWAYSDATA_SSH_HOST }}
           username: ${{ secrets.ALWAYSDATA_SSH_USER }}
-          key: ${{ secrets.ALWAYSDATA_SSH_KEY }}
+          password: ${{ secrets.ALWAYSDATA_SSH_KEY }}
           source: "dist/*,package.json,package-lock.json,.env"
           target: "www/cinevasion-cms"
           strip_components: 0
@@ -51,7 +51,7 @@ jobs:
         with:
           host: ${{ secrets.ALWAYSDATA_SSH_HOST }}
           username: ${{ secrets.ALWAYSDATA_SSH_USER }}
-          key: ${{ secrets.ALWAYSDATA_SSH_KEY }}
+          password: ${{ secrets.ALWAYSDATA_SSH_KEY }}
           script: |
             cd www/cinevasion-cms
             npm install --production
