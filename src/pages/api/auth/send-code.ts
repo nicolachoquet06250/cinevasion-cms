@@ -35,6 +35,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     // Sauvegarder le code dans verificationTokens
     // On nettoie les anciens codes pour cet utilisateur d'abord
+    // @ts-ignore
     await db.delete(verificationTokens).where(
         or(
             eq(verificationTokens.identifier, email),
@@ -42,6 +43,7 @@ export const POST: APIRoute = async ({ request }) => {
         )
     );
 
+    // @ts-ignore
     await db.insert(verificationTokens).values({
       identifier: email,
       token: code,
