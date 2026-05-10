@@ -10,6 +10,12 @@ export default defineConfig({
     mode: 'standalone',
   }),
   integrations: [auth()],
+  security: {
+    // Auth.js validates credentials callbacks with its own CSRF token.
+    // Behind Alwaysdata's reverse proxy, Astro can compare the browser Origin
+    // with the internal request origin and block form-encoded auth POSTs with 403.
+    checkOrigin: false,
+  },
   devToolbar: {
     enabled: false
   }
