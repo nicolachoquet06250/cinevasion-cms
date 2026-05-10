@@ -1,20 +1,22 @@
 import type { APIRoute } from 'astro';
 import { db } from '../../../db';
 import { users, verificationTokens } from '../../../db/schema/auth';
-import { eq, and } from 'drizzle-orm';
+import { eq, or, sql } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 import { sendEmail } from '../../../lib/email';
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    const { email, password } = await request.json();
+    const { email: rawEmail, password: rawPassword } = await request.json();
+    const email = String(rawEmail ?? '').trim().toLowerCase();
+    const password = String(rawPassword ?? '');
 
     if (!email || !password) {
       return new Response(JSON.stringify({ error: 'Email et mot de passe requis' }), { status: 400 });
     }
 
     const user = await db.query.users.findFirst({
-      where: eq(users.email, email),
+      where: sql`lower(${users.email}) = ${email}`,
     });
 
     if (!user || !user.password) {
@@ -33,7 +35,12 @@ export const POST: APIRoute = async ({ request }) => {
 
     // Sauvegarder le code dans verificationTokens
     // On nettoie les anciens codes pour cet utilisateur d'abord
-    await db.delete(verificationTokens).where(eq(verificationTokens.identifier, email));
+    await db.delete(verificationTokens).where(
+        or(
+            eq(verificationTokens.identifier, email),
+            eq(verificationTokens.identifier, user.email as string)
+        )
+    );
 
     await db.insert(verificationTokens).values({
       identifier: email,

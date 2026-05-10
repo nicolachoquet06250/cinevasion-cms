@@ -6,7 +6,7 @@ import { defineConfig } from "auth-astro";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { db } from "./src/db/index.ts";
 import { accounts, sessions, users, verificationTokens } from "./src/db/schema/auth";
-import { eq, and } from "drizzle-orm";
+import { eq, and, or, sql } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
 export default defineConfig({
@@ -44,12 +44,16 @@ export default defineConfig({
         code: { label: "Code", type: "text" }
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password || !credentials?.code) {
+        const email = String(credentials?.email ?? "").trim().toLowerCase();
+        const password = String(credentials?.password ?? "");
+        const code = String(credentials?.code ?? "").trim();
+
+        if (!email || !password || !code) {
           return null;
         }
 
         const user = await db.query.users.findFirst({
-          where: eq(users.email, credentials.email as string),
+          where: sql`lower(${users.email}) = ${email}`,
         });
 
         if (!user || !user.password) {
@@ -57,8 +61,8 @@ export default defineConfig({
         }
 
         const isPasswordValid = await bcrypt.compare(
-          credentials.password as string,
-          user.password
+            password,
+            user.password
         );
 
         if (!isPasswordValid) {
@@ -68,8 +72,11 @@ export default defineConfig({
         // Valider le code 2FA (email code)
         const verificationToken = await db.query.verificationTokens.findFirst({
           where: and(
-            eq(verificationTokens.identifier, user.email as string),
-            eq(verificationTokens.token, credentials.code as string)
+              or(
+                  eq(verificationTokens.identifier, email),
+                  eq(verificationTokens.identifier, user.email as string)
+              ),
+              eq(verificationTokens.token, code)
           )
         });
 
@@ -82,10 +89,13 @@ export default defineConfig({
         // Supprimer le token utilisé
         // @ts-ignore
         await db.delete(verificationTokens).where(
-          and(
-            eq(verificationTokens.identifier, user.email as string),
-            eq(verificationTokens.token, credentials.code as string)
-          )
+            and(
+                or(
+                    eq(verificationTokens.identifier, email),
+                    eq(verificationTokens.identifier, user.email as string)
+                ),
+                eq(verificationTokens.token, code)
+            )
         );
 
         return {
