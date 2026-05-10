@@ -1,0 +1,247 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout>
+  <div class="login-container">
+    <h1>Connexion</h1>
+    <div id="step-1">
+      <p>Entrez votre email pour vous connecter</p>
+      <form id="credentials-form">
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" placeholder="votre@email.com" required />
+        </div>
+
+        <div class="form-group">
+          <label for="password">Mot de passe</label>
+          <input type="password" id="password" name="password" required />
+        </div>
+
+        <button type="submit" id="btn-step-1" class="btn btn-primary">
+          Suivant
+        </button>
+      </form>
+    </div>
+
+    <div id="step-2" class="hidden">
+      <p>Un code de vérification a été envoyé à <span id="display-email"></span></p>
+      <form id="two-fa-form">
+        <div class="form-group">
+          <label for="code">Code de vérification</label>
+          <input type="text" id="code" name="code" placeholder="000000" required maxlength="6" />
+        </div>
+
+        <button type="submit" id="btn-step-2" class="btn btn-primary">
+          Se connecter
+        </button>
+        <button type="button" id="btn-back" class="btn btn-link">
+          Retour
+        </button>
+      </form>
+    </div>
+    
+    <p id="error-message" class="error-msg hidden"></p>
+  </div>
+</Layout>
+
+<script>
+  const { signIn } = await import("auth-astro/client");
+  
+  const step1 = document.querySelector("#step-1") as HTMLElement;
+  const step2 = document.querySelector("#step-2") as HTMLElement;
+  const emailInput = document.querySelector("#email") as HTMLInputElement;
+  const passwordInput = document.querySelector("#password") as HTMLInputElement;
+  const codeInput = document.querySelector("#code") as HTMLInputElement;
+  const displayEmail = document.querySelector("#display-email") as HTMLElement;
+  const errorMessage = document.querySelector("#error-message") as HTMLElement;
+  const btnStep1 = document.querySelector("#btn-step-1") as HTMLButtonElement;
+  const btnStep2 = document.querySelector("#btn-step-2") as HTMLButtonElement;
+
+  function showError(msg: string) {
+    errorMessage.innerText = msg;
+    errorMessage.classList.remove("hidden");
+  }
+
+  function hideError() {
+    errorMessage.classList.add("hidden");
+  }
+
+  document.querySelector("#credentials-form")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    hideError();
+    const email = emailInput.value;
+    const password = passwordInput.value;
+    
+    btnStep1.disabled = true;
+    btnStep1.innerText = "Envoi du code...";
+
+    try {
+      const res = await fetch("/api/auth/send-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        displayEmail.innerText = email;
+        step1.classList.add("hidden");
+        step2.classList.remove("hidden");
+      } else {
+        showError(data.error || "Une erreur est survenue");
+      }
+    } catch (err) {
+      showError("Erreur de connexion au serveur");
+    } finally {
+      btnStep1.disabled = false;
+      btnStep1.innerText = "Suivant";
+    }
+  });
+
+  document.querySelector("#two-fa-form")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    hideError();
+    const email = emailInput.value;
+    const password = passwordInput.value;
+    const code = codeInput.value;
+
+    btnStep2.disabled = true;
+    btnStep2.innerText = "Connexion...";
+
+    try {
+      const result = await signIn("credentials", { 
+        email, 
+        password, 
+        code, 
+        redirect: false,
+        callbackUrl: "/" 
+      });
+
+      console.log("SignIn result:", result);
+
+      if (result && result.error) {
+        showError("Code invalide ou expiré");
+        btnStep2.disabled = false;
+        btnStep2.innerText = "Se connecter";
+      } else {
+        // Redirection manuelle si succès
+        window.location.href = "/";
+      }
+    } catch (err) {
+      console.error("SignIn error:", err);
+      showError("Une erreur est survenue lors de la connexion");
+      btnStep2.disabled = false;
+      btnStep2.innerText = "Se connecter";
+    }
+  });
+
+  document.querySelector("#btn-back")?.addEventListener("click", () => {
+    step2.classList.add("hidden");
+    step1.classList.remove("hidden");
+    hideError();
+  });
+
+  document.querySelector("#google-login")?.addEventListener("click", () => {
+    signIn("google");
+  });
+
+  document.querySelector("#microsoft-login")?.addEventListener("click", () => {
+    signIn("microsoft-entra-id");
+  });
+</script>
+
+<style>
+  .login-container {
+    max-width: 400px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    text-align: center;
+  }
+
+  h1 {
+    margin-bottom: 0.5rem;
+  }
+
+  p {
+    color: var(--text-muted);
+    margin-bottom: 2rem;
+  }
+
+  .btn {
+    padding: 0.8rem;
+    border-radius: 6px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    width: 100%;
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+
+  .btn:hover {
+    opacity: 0.9;
+  }
+
+  .btn-primary {
+    background: var(--primary);
+    color: white;
+  }
+
+  .btn-link {
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    text-decoration: underline;
+    margin-top: 1rem;
+  }
+
+  .btn-link:hover {
+    color: var(--text);
+  }
+
+  .error-msg {
+    color: #ef4444;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    background: rgba(239, 68, 68, 0.1);
+    padding: 0.75rem;
+    border-radius: 0.4rem;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+  }
+
+  .hidden {
+    display: none;
+  }
+
+  .form-group {
+    text-align: left;
+    margin-bottom: 1rem;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+  }
+
+  input {
+    width: 100%;
+    padding: 0.8rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+  }
+
+  hr {
+    margin: 1.5rem 0;
+    border: 0;
+    border-top: 1px solid var(--border);
+  }
+</style>

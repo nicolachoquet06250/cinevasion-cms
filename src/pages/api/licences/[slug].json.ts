@@ -13,9 +13,9 @@ export const GET: APIRoute = async ({ params }) => {
     });
   }
 
-  const post = await getLicence(slug);
+  const licence = await getLicence(slug);
 
-  if (!post) {
+  if (!licence) {
     return new Response(JSON.stringify({ error: 'Licence non trouvée' }), {
       status: 404,
       headers: {
@@ -24,7 +24,7 @@ export const GET: APIRoute = async ({ params }) => {
     });
   }
 
-  return new Response(JSON.stringify(post, null, 2), {
+  return new Response(JSON.stringify(licence, null, 2), {
     status: 200,
     headers: {
       'Content-Type': 'application/json'

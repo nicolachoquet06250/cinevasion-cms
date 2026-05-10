@@ -82,9 +82,9 @@ if (!post) {
     }
 
     .movies-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
     }
 
     .movie-card {
@@ -93,11 +93,15 @@ if (!post) {
         border-radius: 1rem;
         overflow: hidden;
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
+        align-items: stretch;
+        max-width: 50%;
     }
 
     .movie-image {
-        aspect-ratio: 16/9;
+        width: 200px;
+        min-width: 200px;
+        aspect-ratio: 2/3;
         background: #0f172a;
     }
 
@@ -263,6 +267,13 @@ if (!post) {
     }
 
     @media (max-width: 640px) {
+        .movie-card {
+            flex-direction: column;
+        }
+        .movie-image {
+            width: 100%;
+            aspect-ratio: 16/9;
+        }
         .header-content {
             flex-direction: column;
             align-items: flex-start;

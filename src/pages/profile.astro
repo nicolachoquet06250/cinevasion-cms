@@ -1,0 +1,137 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getSession } from 'auth-astro/server';
+
+const session = await getSession(Astro.request);
+
+if (!session) {
+  return Astro.redirect('/login');
+}
+
+const user = session.user;
+---
+
+<Layout title="Mon Profil">
+  <div class="profile-page">
+    <header class="page-header">
+      <h1>Mon Profil</h1>
+      <p>Gérez vos informations personnelles.</p>
+    </header>
+    
+    <div class="grid">
+      <section class="card">
+        <div class="card-header">
+          <span class="icon">👤</span>
+          <h2>Informations personnelles</h2>
+        </div>
+        <div class="card-body">
+          <div class="info-group">
+            <label>Nom</label>
+            <div class="value">{user?.name || 'Non renseigné'}</div>
+          </div>
+          <div class="info-group">
+            <label>Email</label>
+            <div class="value">{user?.email}</div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</Layout>
+
+<script>
+</script>
+
+<style>
+  .profile-page {
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  .page-header {
+    margin-bottom: 3rem;
+  }
+
+  .page-header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(to right, #fff, var(--primary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .page-header p {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    max-width: 600px;
+  }
+
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .card-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .card-header h2 {
+    font-size: 1.25rem;
+    margin: 0;
+  }
+
+  .card-header .icon {
+    font-size: 1.5rem;
+  }
+
+  .card-body {
+    padding: 2rem;
+    flex: 1;
+  }
+
+  .info-group {
+    margin-bottom: 1.5rem;
+  }
+
+  .info-group:last-child {
+    margin-bottom: 0;
+  }
+
+  .info-group label {
+    display: block;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    margin-bottom: 0.25rem;
+    font-weight: 500;
+  }
+
+  .info-group .value {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #fff;
+  }
+
+  @media (max-width: 768px) {
+    .page-header h1 {
+      font-size: 2rem;
+    }
+
+    .card-body {
+      padding: 1.5rem;
+    }
+  }
+</style>

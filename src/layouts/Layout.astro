@@ -1,3 +1,7 @@
+---
+import { getSession } from 'auth-astro/server';
+const session = await getSession(Astro.request);
+---
 <!doctype html>
 <html lang="fr">
 	<head>
@@ -17,6 +21,12 @@
 				<ul>
 					<li><a href="/">Accueil</a></li>
 					<li><a href="/admin/licences">Licences</a></li>
+					{session ? (
+						<li><a href="/profile">{session.user?.name || session.user?.email}</a></li>
+						<li><button id="logout" class="btn-link">Déconnexion</button></li>
+					) : (
+						<li><a href="/login">Connexion</a></li>
+					)}
 				</ul>
 			</nav>
 		</header>
@@ -26,6 +36,11 @@
 		<footer>
 			<p>&copy; 2024 Cinevasion CMS - Gestion de contenu statique</p>
 		</footer>
+
+		<script>
+			const { signOut } = await import("auth-astro/client");
+			document.querySelector("#logout")?.addEventListener("click", () => signOut());
+		</script>
 	</body>
 </html>
 
@@ -105,6 +120,26 @@
 	}
 
 	nav a:hover {
+		color: var(--primary);
+	}
+
+	.user-email {
+		color: var(--text-muted);
+		font-size: 0.9rem;
+	}
+
+	.btn-link {
+		background: none;
+		border: none;
+		color: var(--text);
+		font-family: inherit;
+		font-size: inherit;
+		font-weight: 500;
+		cursor: pointer;
+		padding: 0;
+	}
+
+	.btn-link:hover {
 		color: var(--primary);
 	}
 
