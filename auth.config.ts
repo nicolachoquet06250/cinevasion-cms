@@ -9,7 +9,8 @@ import bcrypt from "bcryptjs";
 
 export default defineConfig({
   trustHost: true,
-  redirectProxyUrl: import.meta.env.AUTH_REDIRECT_PROXY_URL,
+  // Force l'URL de redirection pour éviter le localhost:8128 du proxy interne
+  redirectProxyUrl: import.meta.env.AUTH_URL + "/profile",
   adapter: DrizzleAdapter(db, {
     usersTable: users,
     accountsTable: accounts,

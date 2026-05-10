@@ -113,7 +113,13 @@ import Layout from '../layouts/Layout.astro';
     }
 
     if (redirectUrl) {
+      // Si l'URL de redirection est vers localhost (port interne Alwaysdata), on la remplace par l'origine actuelle
       const url = new URL(redirectUrl, window.location.origin);
+      if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
+        url.protocol = window.location.protocol;
+        url.host = window.location.host;
+      }
+      
       const error = url.searchParams.get("error");
 
       if (error) {
