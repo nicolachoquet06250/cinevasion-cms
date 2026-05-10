@@ -86,6 +86,10 @@ jobs:
       - name: Run migration
         run: |
           npm run db:push
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
       - name: Run seed
         run: |
           npm run db:seed
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
