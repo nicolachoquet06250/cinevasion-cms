@@ -34,6 +34,8 @@ jobs:
           echo "AUTH_FROM=${{ secrets.EMAIL_USER }}" >> .env
           echo "AUTH_SECRET=${{ secrets.AUTH_SECRET }}" >> .env
           echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
+          echo "AUTH_TRUST_HOST=true" >> .env
+          echo "AUTH_URL=https://cinevasion-cms.nicovers06.fr" >> .env
 
       - name: Build application
         run: npm run build
@@ -50,6 +52,8 @@ jobs:
           echo "AUTH_FROM=${{ secrets.EMAIL_USER }}" >> dist/.env
           echo "AUTH_SECRET=${{ secrets.AUTH_SECRET }}" >> dist/.env
           echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> dist/.env
+          echo "AUTH_TRUST_HOST=true" >> .env
+          echo "AUTH_URL=https://cinevasion-cms.nicovers06.fr" >> .env
 
       - name: Prepare package
         run: |
