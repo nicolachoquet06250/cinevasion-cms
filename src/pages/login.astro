@@ -111,7 +111,8 @@ import Layout from '../layouts/Layout.astro';
     btnStep2.innerText = "Connexion...";
 
     try {
-      const result = await signIn("credentials", { 
+      const result = await signIn("credentials", {
+        // @ts-ignore
         email, 
         password, 
         code, 
@@ -121,6 +122,7 @@ import Layout from '../layouts/Layout.astro';
 
       console.log("SignIn result:", result);
 
+      // @ts-ignore
       if (result && result.error) {
         showError("Code invalide ou expiré");
         btnStep2.disabled = false;
