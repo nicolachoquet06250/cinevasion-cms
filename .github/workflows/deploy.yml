@@ -36,16 +36,46 @@ jobs:
           echo "EMAIL_SERVER_PASSWORD=${{ secrets.EMAIL_PASSWORD }}" > .env
           echo "AUTH_FROM=${{ secrets.EMAIL_USER }}" > .env
 
-      - name: Deploy to Alwaysdata via SSH
+      - name: Deploy dist to Alwaysdata via SSH
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.ALWAYSDATA_SSH_HOST }}
           username: ${{ secrets.ALWAYSDATA_SSH_USER }}
           password: ${{ secrets.ALWAYSDATA_SSH_KEY }}
-          source: "dist,package.json,package-lock.json,.env"
+          source: "dist"
           target: "/home/nicolas-choquet/www/cinevasion-cms"
           strip_components: 1
           rm: true
+
+      - name: Deploy package to Alwaysdata via SSH
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.ALWAYSDATA_SSH_HOST }}
+          username: ${{ secrets.ALWAYSDATA_SSH_USER }}
+          password: ${{ secrets.ALWAYSDATA_SSH_KEY }}
+          source: "package.json"
+          target: "/home/nicolas-choquet/www/cinevasion-cms"
+          strip_components: 1
+
+      - name: Deploy package-lock to Alwaysdata via SSH
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.ALWAYSDATA_SSH_HOST }}
+          username: ${{ secrets.ALWAYSDATA_SSH_USER }}
+          password: ${{ secrets.ALWAYSDATA_SSH_KEY }}
+          source: "package-lock.json"
+          target: "/home/nicolas-choquet/www/cinevasion-cms"
+          strip_components: 1
+
+      - name: Deploy .env to Alwaysdata via SSH
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.ALWAYSDATA_SSH_HOST }}
+          username: ${{ secrets.ALWAYSDATA_SSH_USER }}
+          password: ${{ secrets.ALWAYSDATA_SSH_KEY }}
+          source: ".env"
+          target: "/home/nicolas-choquet/www/cinevasion-cms"
+          strip_components: 1
 
       - name: Post-deployment commands
         uses: appleboy/ssh-action@master
