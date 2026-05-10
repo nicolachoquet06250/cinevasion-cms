@@ -37,7 +37,6 @@ jobs:
           echo "AUTH_TRUST_HOST=true" >> .env
           echo "AUTH_URL=https://cinevasion-cms.nicovers06.fr" >> .env
           echo "NODE_ENV=production" >> .env
-          echo "AUTH_REDIRECT_PROXY_URL=https://cinevasion-cms.nicovers06.fr/api/auth" >> .env
           echo "TRUST_PROXY=true" >> .env
 
       - name: Build application
@@ -58,7 +57,6 @@ jobs:
           echo "AUTH_TRUST_HOST=true" >> dist/.env
           echo "AUTH_URL=https://cinevasion-cms.nicovers06.fr" >> dist/.env
           echo "NODE_ENV=production" >> dist/.env
-          echo "AUTH_REDIRECT_PROXY_URL=https://cinevasion-cms.nicovers06.fr/api/auth" >> dist/.env
           echo "TRUST_PROXY=true" >> dist/.env
 
       - name: Prepare package

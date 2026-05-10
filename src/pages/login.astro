@@ -46,8 +46,6 @@ import Layout from '../layouts/Layout.astro';
 </Layout>
 
 <script>
-  const { signIn } = await import("auth-astro/client");
-  
   const step1 = document.querySelector("#step-1") as HTMLElement;
   const step2 = document.querySelector("#step-2") as HTMLElement;
   const emailInput = document.querySelector("#email") as HTMLInputElement;
@@ -66,6 +64,74 @@ import Layout from '../layouts/Layout.astro';
   function hideError() {
     errorMessage.classList.add("hidden");
   }
+
+  const authErrorMessages: Record<string, string> = {
+    CredentialsSignin: "Code invalide ou expiré",
+    MissingCSRF: "Session de connexion expirée, veuillez renvoyer un code",
+    AccessDenied: "Accès refusé",
+    Configuration: "Erreur de configuration du serveur d'authentification",
+  };
+
+  function getAuthErrorMessage(error: string | null) {
+    if (!error) return "Une erreur est survenue lors de la connexion";
+    return authErrorMessages[error] ?? "Une erreur est survenue lors de la connexion";
+  }
+
+  async function signInWithCredentials(email: string, password: string, code: string) {
+    const csrfResponse = await fetch("/api/auth/csrf", {
+      credentials: "same-origin",
+    });
+
+    if (!csrfResponse.ok) {
+      return { ok: false, error: "MissingCSRF" };
+    }
+
+    const { csrfToken } = await csrfResponse.json();
+
+    const response = await fetch("/api/auth/callback/credentials", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "X-Auth-Return-Redirect": "1",
+      },
+      body: new URLSearchParams({
+        email,
+        password,
+        code,
+        csrfToken,
+        callbackUrl: `${window.location.origin}/`,
+      }),
+    });
+
+    const contentType = response.headers.get("content-type") ?? "";
+    let redirectUrl = response.redirected ? response.url : null;
+
+    if (contentType.includes("application/json")) {
+      const data = await response.json();
+      redirectUrl = typeof data?.url === "string" ? data.url : redirectUrl;
+    }
+
+    if (redirectUrl) {
+      const url = new URL(redirectUrl, window.location.origin);
+      const error = url.searchParams.get("error");
+
+      if (error) {
+        return { ok: false, error };
+      }
+
+      window.location.href = url.href;
+      return { ok: true, error: null };
+    }
+
+    if (response.ok) {
+      window.location.href = "/";
+      return { ok: true, error: null };
+    }
+
+    return { ok: false, error: `HTTP_${response.status}` };
+  }
+
 
   document.querySelector("#credentials-form")?.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -111,25 +177,12 @@ import Layout from '../layouts/Layout.astro';
     btnStep2.innerText = "Connexion...";
 
     try {
-      const result = await signIn("credentials", {
-        // @ts-ignore
-        email, 
-        password, 
-        code, 
-        redirect: false,
-        callbackUrl: "/" 
-      });
+      const result = await signInWithCredentials(email, password, code);
 
-      console.log("SignIn result:", result);
-
-      // @ts-ignore
-      if (result && result.error) {
-        showError("Code invalide ou expiré");
+      if (!result.ok) {
+        showError(getAuthErrorMessage(result.error));
         btnStep2.disabled = false;
         btnStep2.innerText = "Se connecter";
-      } else {
-        // Redirection manuelle si succès
-        window.location.href = "/";
       }
     } catch (err) {
       console.error("SignIn error:", err);
@@ -143,14 +196,6 @@ import Layout from '../layouts/Layout.astro';
     step2.classList.add("hidden");
     step1.classList.remove("hidden");
     hideError();
-  });
-
-  document.querySelector("#google-login")?.addEventListener("click", () => {
-    signIn("google");
-  });
-
-  document.querySelector("#microsoft-login")?.addEventListener("click", () => {
-    signIn("microsoft-entra-id");
   });
 </script>
 

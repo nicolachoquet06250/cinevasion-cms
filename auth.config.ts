@@ -1,10 +1,8 @@
 import EmailProvider from "@auth/core/providers/email";
-import Google from "@auth/core/providers/google";
-import MicrosoftEntraID from "@auth/core/providers/microsoft-entra-id";
 import Credentials from "@auth/core/providers/credentials";
 import { defineConfig } from "auth-astro";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
-import { db } from "./src/db/index.ts";
+import { db } from "./src/db";
 import { accounts, sessions, users, verificationTokens } from "./src/db/schema/auth";
 import { eq, and, or, sql } from "drizzle-orm";
 import bcrypt from "bcryptjs";

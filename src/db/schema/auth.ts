@@ -24,8 +24,10 @@ const idText = (name: string) => isMySQL ? mysqlVarchar(name, { length: 255 }) :
 const timestamp = (name: string) => isMySQL ? mysqlDatetime(name, { mode: 'date' }) : sqliteInteger(name, { mode: "timestamp_ms" });
 const boolean = (name: string) => isMySQL ? mysqlBoolean(name) : sqliteInteger(name, { mode: "boolean" });
 const integer = (name: string) => isMySQL ? mysqlInt(name) : sqliteInteger(name);
+// @ts-ignore
 const primaryKey = (config: { columns: any[] }) => isMySQL ? mysqlPrimaryKey(config) : sqlitePrimaryKey(config);
 
+// @ts-ignore
 export const users = tableFactory("user", {
   id: idText("id")
     .primaryKey()
@@ -39,6 +41,7 @@ export const users = tableFactory("user", {
   twoFactorEnabled: boolean("twoFactorEnabled").default(false),
 });
 
+// @ts-ignore
 export const accounts = tableFactory(
   "account",
   {
@@ -56,6 +59,7 @@ export const accounts = tableFactory(
     id_token: text("id_token"),
     session_state: text("session_state"),
   },
+// @ts-ignore
   (account) => ({
     compoundKey: primaryKey({
       columns: [account.provider, account.providerAccountId],
@@ -63,6 +67,7 @@ export const accounts = tableFactory(
   })
 );
 
+// @ts-ignore
 export const sessions = tableFactory("session", {
   sessionToken: idText("sessionToken").primaryKey(),
   userId: idText("userId")
@@ -71,6 +76,7 @@ export const sessions = tableFactory("session", {
   expires: timestamp("expires").notNull(),
 });
 
+// @ts-ignore
 export const verificationTokens = tableFactory(
   "verificationToken",
   {
@@ -78,6 +84,7 @@ export const verificationTokens = tableFactory(
     token: text("token").notNull(),
     expires: timestamp("expires").notNull(),
   },
+// @ts-ignore
   (vt) => ({
     compoundKey: primaryKey({ columns: [vt.identifier, vt.token] }),
   })
