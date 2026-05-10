@@ -33,6 +33,7 @@ jobs:
           echo "EMAIL_SERVER_PASSWORD=${{ secrets.EMAIL_PASSWORD }}" >> .env
           echo "AUTH_FROM=${{ secrets.EMAIL_USER }}" >> .env
           echo "AUTH_SECRET=${{ secrets.AUTH_SECRET }}" >> .env
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
 
       - name: Build application
         run: npm run build
@@ -48,6 +49,7 @@ jobs:
           echo "EMAIL_SERVER_PASSWORD=${{ secrets.EMAIL_PASSWORD }}" >> dist/.env
           echo "AUTH_FROM=${{ secrets.EMAIL_USER }}" >> dist/.env
           echo "AUTH_SECRET=${{ secrets.AUTH_SECRET }}" >> dist/.env
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> dist/.env
 
       - name: Prepare package
         run: |
