@@ -11,7 +11,7 @@
     "preview": "astro preview",
     "astro": "astro",
     "db:seed": "node --experimental-strip-types seed.ts",
-    "db:push": "drizzle-kit push"
+    "db:push": "drizzle-kit push --config=drizzle.config.ts"
   },
   "dependencies": {
     "@astrojs/node": "^10.1.0",
