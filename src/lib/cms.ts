@@ -85,6 +85,8 @@ export async function saveLicence(licence: Licence, dataBaseUrl: string) {
     url: `${dataBaseUrl}/${licenceFilename}`
   };
 
+  console.log(licenceData)
+
   // Sauvegarder le fichier individuel
   await fs.writeFile(licencePath, JSON.stringify(licenceData, null, 2), 'utf-8');
 
@@ -99,6 +101,8 @@ export async function saveLicence(licence: Licence, dataBaseUrl: string) {
     url: licenceData.url,
     date: licenceData.date
   };
+
+  console.log(summary)
 
   if (existingIndex >= 0) {
     index[existingIndex] = summary;
