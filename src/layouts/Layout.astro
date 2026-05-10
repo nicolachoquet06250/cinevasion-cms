@@ -39,7 +39,9 @@ const session = await getSession(Astro.request);
 
 		<script>
 			const { signOut } = await import("auth-astro/client");
-			document.querySelector("#logout")?.addEventListener("click", () => signOut());
+			document.querySelector("#logout")?.addEventListener("click", () => signOut({
+				callbackUrl: import.meta.env.AUTH_URL + '/profile',
+			}));
 		</script>
 	</body>
 </html>

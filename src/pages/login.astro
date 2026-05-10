@@ -100,7 +100,7 @@ import Layout from '../layouts/Layout.astro';
         password,
         code,
         csrfToken,
-        callbackUrl: `${window.location.origin}/`,
+        callbackUrl: `${window.location.origin}/profile`,
       }),
     });
 
@@ -117,7 +117,8 @@ import Layout from '../layouts/Layout.astro';
       const url = new URL(redirectUrl, window.location.origin);
       if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
         url.protocol = window.location.protocol;
-        url.host = window.location.host;
+        url.hostname = window.location.hostname;
+        url.port = window.location.port;
       }
       
       const error = url.searchParams.get("error");
@@ -126,7 +127,7 @@ import Layout from '../layouts/Layout.astro';
         return { ok: false, error };
       }
 
-      window.location.href = url.href;
+      window.location.href = import.meta.env.AUTH_URL + '/profile';
       return { ok: true, error: null };
     }
 
