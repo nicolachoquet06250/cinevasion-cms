@@ -43,7 +43,7 @@ jobs:
           username: ${{ secrets.ALWAYSDATA_SSH_USER }}
           password: ${{ secrets.ALWAYSDATA_SSH_KEY }}
           source: "dist,package.json,package-lock.json,.env"
-          target: "www/cinevasion-cms"
+          target: "/home/nicolas-choquet/www/cinevasion-cms"
           strip_components: 1
           rm: true
 
@@ -54,7 +54,7 @@ jobs:
           username: ${{ secrets.ALWAYSDATA_SSH_USER }}
           password: ${{ secrets.ALWAYSDATA_SSH_KEY }}
           script: |
-            cd www/cinevasion-cms
+            cd /home/nicolas-choquet/www/cinevasion-cms
             npm install --production
           
             err=$(curl -X POST --basic --user "${{secrets.ALWAYSDATA_TOKEN}} account=${{secrets.ALWAYSDATA_USER}}:" https://api.alwaysdata.com/v1/site/${{secrets.ALWAYSDATA_SITE_ID}}/restart/ &>2);
