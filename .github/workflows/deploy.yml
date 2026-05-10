@@ -86,3 +86,6 @@ jobs:
       - name: Run migration
         run: |
           npm run db:push
+      - name: Run seed
+        run: |
+          npm run db:seed
