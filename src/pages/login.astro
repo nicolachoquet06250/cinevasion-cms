@@ -28,13 +28,13 @@ const callbackUrl = import.meta.env.AUTH_URL + '/profile';
 
     <div id="step-2" class="hidden">
       <p>Un code de vérification a été envoyé à <span id="display-email"></span></p>
-      <form id="two-fa-form">
+      <form id="two-fa-form" data-callback-url={callbackUrl}>
         <div class="form-group">
           <label for="code">Code de vérification</label>
           <input type="text" id="code" name="code" placeholder="000000" required maxlength="6" />
         </div>
 
-        <button type="submit" id="btn-step-2" class="btn btn-primary" data-callback-url={callbackUrl}>
+        <button type="submit" id="btn-step-2" class="btn btn-primary">
           Se connecter
         </button>
         <button type="button" id="btn-back" class="btn btn-link">
@@ -177,8 +177,8 @@ const callbackUrl = import.meta.env.AUTH_URL + '/profile';
 
   document.querySelector("#two-fa-form")?.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const target = e.target as HTMLButtonElement;
     hideError();
+    const target = e.target as HTMLFormElement;
     const email = emailInput.value;
     const password = passwordInput.value;
     const code = codeInput.value;
