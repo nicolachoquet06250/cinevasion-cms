@@ -25,7 +25,7 @@ jobs:
       - name: Create .env file
         run: |
           echo "GITHUB_PAGES_IMAGES=https://nicolachoquet06250.github.io/cinevasion-images" >> .env
-          echo "GITHUB_PAGES_DATA=https://nicolachoquet06250.github.io/cinevasion-data" >> .env
+          echo "GITHUB_PAGES_DATA=https://nicolachoquet06250.github.io/cinevasion-data/licences" >> .env
 
           echo "EMAIL_SERVER_HOST=${{ secrets.EMAIL_HOST }}" >> .env
           echo "EMAIL_SERVER_PORT=${{ secrets.EMAIL_PORT }}" >> .env
@@ -45,7 +45,7 @@ jobs:
       - name: Create .env file
         run: |
           echo "GITHUB_PAGES_IMAGES=https://nicolachoquet06250.github.io/cinevasion-images" >> dist/.env
-          echo "GITHUB_PAGES_DATA=https://nicolachoquet06250.github.io/cinevasion-data" >> dist/.env
+          echo "GITHUB_PAGES_DATA=https://nicolachoquet06250.github.io/cinevasion-data/licences" >> dist/.env
           
           echo "EMAIL_SERVER_HOST=${{ secrets.EMAIL_HOST }}" >> dist/.env
           echo "EMAIL_SERVER_PORT=${{ secrets.EMAIL_PORT }}" >> dist/.env

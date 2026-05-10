@@ -2,8 +2,8 @@ import fs from 'fs/promises';
 import path from 'path';
 import { simpleGit, type SimpleGit } from 'simple-git';
 
-const IMAGES_URL = process.env.GITHUB_PAGES_IMAGES ?? '/images';
-const DATA_URL = process.env.GITHUB_PAGES_DATA ?? '/licences';
+// const IMAGES_URL = process.env.GITHUB_PAGES_IMAGES ?? '/images';
+// const DATA_URL = process.env.GITHUB_PAGES_DATA ?? '/licences';
 
 // Chemin vers le répertoire de données (peut être configuré via variable d'environnement)
 // Par défaut, on cherche un dossier "cinevasion-data" à côté du projet CMS
@@ -72,7 +72,7 @@ export async function getLicence(slug: string) {
   }
 }
 
-export async function saveLicence(licence: Licence) {
+export async function saveLicence(licence: Licence, dataBaseUrl: string) {
   await ensureDirs();
   const git = await getDataGit();
   
@@ -82,7 +82,7 @@ export async function saveLicence(licence: Licence) {
     ...licence,
     date: licence.date || new Date().toISOString(),
     // L'URL dépendra de là où sont servis les fichiers statiques (ex: GitHub Pages ou autre domaine)
-    url: `${DATA_URL}/${licenceFilename}`
+    url: `${dataBaseUrl}/${licenceFilename}`
   };
 
   // Sauvegarder le fichier individuel
@@ -125,7 +125,58 @@ export async function saveLicence(licence: Licence) {
   return licenceData;
 }
 
-export async function saveImage(filename: string, buffer: Buffer) {
+export async function deleteLicence(slug: string, imageBaseUrl: string) {
+  const licence = await getLicence(slug);
+  if (!licence) return;
+
+  // Supprimer les images associées
+  if (licence.movies) {
+    for (const movie of licence.movies) {
+      if (movie.image) {
+        await deleteImage(movie.image, imageBaseUrl);
+      }
+    }
+  }
+
+  await ensureDirs();
+  const git = await getDataGit();
+
+  const licenceFilename = `${slug}.json`;
+  const licencePath = path.join(LICENCES_DIR, licenceFilename);
+
+  try {
+    await fs.unlink(licencePath);
+    
+    // Mettre à jour l'index
+    const licences = await getLicences();
+    const index = licences.filter((p: any) => p.slug !== slug);
+    await fs.writeFile(INDEX_FILE, JSON.stringify(index, null, 2), 'utf-8');
+
+    const relativeLicencePath = path.relative(DATA_DIR, licencePath);
+    const relativeIndexPath = path.relative(DATA_DIR, INDEX_FILE);
+
+    await git.add([relativeLicencePath, relativeIndexPath]); // Certains git demandent add pour les suppressions, ou rm
+    await git.commit(`CMS: delete licence ${slug}`);
+    await git.push();
+    console.log(`Deleted and pushed licence removal ${slug} to external repo`);
+  } catch (err) {
+    console.error('Git operation for licence deletion failed:', err);
+  }
+}
+
+export function slugify(text: string) {
+  return text
+    .toString()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^\w-]+/g, '')
+    .replace(/--+/g, '-');
+}
+
+export async function saveImage(filename: string, buffer: Buffer, imageBaseUrl: string) {
   await ensureDirs();
   const git = await getImagesGit();
 
@@ -144,5 +195,25 @@ export async function saveImage(filename: string, buffer: Buffer) {
   // Ici on retourne le lien qui sera stocké dans le JSON.
   // Idéalement ce serait l'URL brute (ex: raw.githubusercontent.com)
   // Pour l'instant on met un chemin relatif ou une convention.
-  return `${IMAGES_URL}/${filename}`;
+  return `${imageBaseUrl}/${filename}`;
+}
+
+export async function deleteImage(imageUrl: string, imageBaseUrl: string) {
+  if (!imageUrl || !imageUrl.startsWith(imageBaseUrl)) return;
+
+  await ensureDirs();
+  const git = await getImagesGit();
+  const filename = imageUrl.replace(`${imageBaseUrl}/`, '');
+  const filePath = path.join(IMAGES_DIR, filename);
+
+  try {
+    await fs.unlink(filePath);
+    await git.add(filename); // Certains git versions demandent add pour les suppressions, ou rm
+    await git.commit(`CMS: delete image ${filename}`);
+    await git.push();
+    console.log(`Deleted and pushed image removal ${filename} to external repo`);
+  } catch (err) {
+    console.error('Git operation for image deletion failed:', err);
+    // On ne bloque pas si le fichier n'existe déjà plus
+  }
 }

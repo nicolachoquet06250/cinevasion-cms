@@ -1,6 +1,6 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
-import { saveLicence, saveImage, type Movie } from '../../../lib/cms';
+import { saveLicence, saveImage, slugify, type Movie } from '../../../lib/cms';
 
 const method = Astro.request.method;
 
@@ -21,15 +21,17 @@ if (method === 'POST') {
     for (let i = 0; i < movieTitles.length; i++) {
         const imageFile = movieImages[i] as File;
         let imageUrl = '';
+        const movieTitle = movieTitles[i].toString();
         
         if (imageFile && imageFile.size > 0) {
             const buffer = Buffer.from(await imageFile.arrayBuffer());
-            const filename = `${slug}-${Date.now()}-${imageFile.name}`;
-            imageUrl = await saveImage(filename, buffer);
+            const extension = imageFile.name.split('.').pop() || 'jpg';
+            const filename = `${slug}-${slugify(movieTitle)}.${extension}`;
+            imageUrl = await saveImage(filename, buffer, import.meta.env.GITHUB_PAGES_IMAGES);
         }
 
         movies.push({
-            title: movieTitles[i].toString(),
+            title: movieTitle,
             synopsis: movieSynopses[i].toString(),
             releaseDate: movieDates[i].toString(),
             trailerUrl: movieTrailers[i]?.toString() || undefined,
@@ -38,7 +40,7 @@ if (method === 'POST') {
     }
 
     if (slug && title) {
-      await saveLicence({ slug, title, movies });
+      await saveLicence({ slug, title, movies }, import.meta.env.GITHUB_PAGES_DATA);
       return Astro.redirect('/admin/licences');
     }
   } catch (e) {
@@ -90,24 +92,41 @@ if (method === 'POST') {
             </div>
             <div class="movie-grid">
                 <div class="form-group">
-                    <label>Titre du film</label>
-                    <input type="text" name="movie_title" required />
+                    <label for="movie_title">Titre du film</label>
+                    <input type="text" id="movie_title" name="movie_title" required />
                 </div>
                 <div class="form-group">
-                    <label>Date de sortie</label>
-                    <input type="date" name="movie_releaseDate" required />
+                    <label for="movie_releaseDate">Date de sortie</label>
+                    <input type="date" id="movie_releaseDate" name="movie_releaseDate" required />
                 </div>
                 <div class="form-group">
-                    <label>Bande annonce (URL optionnelle)</label>
-                    <input type="url" name="movie_trailerUrl" />
+                    <label for="movie_trailerUrl">Bande annonce (URL optionnelle)</label>
+                    <input type="url" id="movie_trailerUrl" name="movie_trailerUrl" />
                 </div>
                 <div class="form-group">
                     <label>Image du film</label>
-                    <input type="file" name="movie_image" accept="image/*" required />
+                    <div class="image-upload-wrapper">
+                        <input type="file" name="movie_image" accept="image/*" required class="movie-image-input" />
+                        <label class="image-preview-label" tabindex="0" role="button" aria-label="Choisir une image pour le film">
+                            <div class="image-preview-container">
+                                <div class="new-preview hidden">
+                                    <span>Aperçu :</span>
+                                    <img src="" alt="Preview" class="preview-img" />
+                                </div>
+                                <div class="placeholder-preview">
+                                    <span class="plus-icon">+</span>
+                                    <span>Ajouter une image</span>
+                                </div>
+                                <div class="upload-overlay">
+                                    <span>Changer l'image</span>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
                 </div>
                 <div class="form-group full-width">
-                    <label>Synopsis</label>
-                    <textarea name="movie_synopsis" rows="4" required></textarea>
+                    <label for="movie_synopsis">Synopsis</label>
+                    <textarea id="movie_synopsis" name="movie_synopsis" rows="4" required></textarea>
                 </div>
             </div>
         </div>
@@ -119,9 +138,53 @@ if (method === 'POST') {
     const addBtn = document.getElementById('add-movie-btn');
     const template = document.getElementById('movie-template') as HTMLTemplateElement;
 
+    function handleImagePreview(input: HTMLInputElement) {
+        const wrapper = input.closest('.image-upload-wrapper');
+        const label = wrapper?.querySelector('.image-preview-label') as HTMLLabelElement;
+        const container = wrapper?.querySelector('.image-preview-container');
+        const newPreview = container?.querySelector('.new-preview');
+        const placeholder = container?.querySelector('.placeholder-preview');
+        const img = newPreview?.querySelector('img');
+
+        input.addEventListener('change', () => {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    if (img && e.target?.result) {
+                        img.src = e.target.result as string;
+                        newPreview?.classList.remove('hidden');
+                        placeholder?.classList.add('hidden');
+                    }
+                };
+                reader.readAsDataURL(input.files[0]);
+            } else {
+                newPreview?.classList.add('hidden');
+                placeholder?.classList.remove('hidden');
+            }
+        });
+
+        // Accessibilité au clavier
+        label?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                input.click();
+            }
+        });
+    }
+
     addBtn?.addEventListener('click', () => {
         const clone = template.content.cloneNode(true) as HTMLElement;
         const removeBtn = clone.querySelector('.remove-movie-btn');
+        const imageInput = clone.querySelector('.movie-image-input') as HTMLInputElement;
+        const label = clone.querySelector('.image-preview-label') as HTMLLabelElement;
+        
+        // Générer un ID unique pour le clone
+        const uniqueId = `file-input-new-${Date.now()}`;
+        if (imageInput && label) {
+            imageInput.id = uniqueId;
+            label.setAttribute('for', uniqueId);
+            handleImagePreview(imageInput);
+        }
         
         removeBtn?.addEventListener('click', (e) => {
             (e.target as HTMLElement).closest('.movie-card')?.remove();
@@ -247,6 +310,117 @@ if (method === 'POST') {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 1.5rem;
+    }
+
+    /* Nouveau style pour l'input file caché et l'image cliquable */
+    .image-upload-wrapper {
+        position: relative;
+    }
+
+    .movie-image-input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border-width: 0;
+    }
+
+    .image-preview-label {
+        display: block;
+        cursor: pointer;
+        border-radius: 1rem;
+        transition: all 0.2s;
+        border: 2px solid var(--border);
+        padding: 0.5rem;
+        background: rgba(15, 23, 42, 0.3);
+    }
+
+    .image-preview-label:hover {
+        border-color: var(--primary);
+        background: rgba(99, 102, 241, 0.05);
+    }
+
+    .image-preview-label:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
+    }
+
+    .image-preview-container {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        min-height: 150px;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+        border-radius: 0.5rem;
+    }
+
+    .upload-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.2s;
+        color: white;
+        font-weight: 600;
+        font-size: 0.9rem;
+        pointer-events: none;
+        border-radius: 0.5rem;
+    }
+
+    .image-preview-label:hover .upload-overlay {
+        opacity: 1;
+    }
+
+    .placeholder-preview {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--text-muted);
+    }
+
+    .plus-icon {
+        font-size: 2rem;
+        font-weight: 300;
+    }
+
+    .image-preview-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-top: 0.75rem;
+    }
+
+    .preview-img {
+        width: 100%;
+        max-width: 200px;
+        height: auto;
+        border-radius: 0.5rem;
+        border: 1px solid var(--border);
+        object-fit: cover;
+    }
+
+    .new-preview {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+        color: var(--primary);
+    }
+
+    .hidden {
+        display: none;
     }
 
     @media (max-width: 768px) {
