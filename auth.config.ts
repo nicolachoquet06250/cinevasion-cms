@@ -11,6 +11,7 @@ import bcrypt from "bcryptjs";
 
 export default defineConfig({
   trustHost: true,
+  redirectProxyUrl: import.meta.env.AUTH_REDIRECT_PROXY_URL,
   adapter: DrizzleAdapter(db, {
     usersTable: users,
     accountsTable: accounts,
