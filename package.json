@@ -10,7 +10,8 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "db:seed": "node --experimental-strip-types seed.ts"
+    "db:seed": "node --experimental-strip-types seed.ts",
+    "db:push": "drizzle-kit push"
   },
   "dependencies": {
     "@astrojs/node": "^10.1.0",

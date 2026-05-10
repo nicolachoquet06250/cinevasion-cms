@@ -75,6 +75,7 @@ jobs:
           script: |
             cd /home/nicolas-choquet/www/cinevasion-cms
             npm install --production
+            npm run db:push
           
             err=$(curl -X POST --basic --user "${{secrets.ALWAYSDATA_TOKEN}} account=${{secrets.ALWAYSDATA_USER}}:" https://api.alwaysdata.com/v1/site/${{secrets.ALWAYSDATA_SITE_ID}}/restart/ &>2);
             if [[ "${err}" -eq "" ]]; then
