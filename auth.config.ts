@@ -10,6 +10,7 @@ import { eq, and } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
 export default defineConfig({
+  trustHost: true,
   adapter: DrizzleAdapter(db, {
     usersTable: users,
     accountsTable: accounts,
@@ -33,15 +34,6 @@ export default defineConfig({
         },
       },
       from: import.meta.env.AUTH_FROM,
-    }),
-    Google({
-      clientId: import.meta.env.GOOGLE_CLIENT_ID,
-      clientSecret: import.meta.env.GOOGLE_CLIENT_SECRET,
-    }),
-    MicrosoftEntraID({
-      clientId: import.meta.env.AUTH_MICROSOFT_ENTRA_ID_ID,
-      clientSecret: import.meta.env.AUTH_MICROSOFT_ENTRA_ID_SECRET,
-      tenantId: import.meta.env.AUTH_MICROSOFT_ENTRA_ID_TENANT_ID,
     }),
     Credentials({
       name: "Password",
@@ -87,6 +79,7 @@ export default defineConfig({
         // console.log("Token valid, deleting and returning user");
 
         // Supprimer le token utilisé
+        // @ts-ignore
         await db.delete(verificationTokens).where(
           and(
             eq(verificationTokens.identifier, user.email as string),
