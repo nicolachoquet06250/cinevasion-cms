@@ -22,6 +22,18 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Create .env file
+        run: |
+          echo "GITHUB_PAGES_IMAGES=https://nicolachoquet06250.github.io/cinevasion-images" > .env
+          echo "GITHUB_PAGES_DATA=https://nicolachoquet06250.github.io/cinevasion-data" > .env
+
+          echo "EMAIL_SERVER_HOST=${{ secrets.EMAIL_HOST }}" > .env
+          echo "EMAIL_SERVER_PORT=${{ secrets.EMAIL_PORT }}" > .env
+          echo "EMAIL_SERVER_USER=${{ secrets.EMAIL_USER }}" > .env
+          echo "EMAIL_SERVER_PASSWORD=${{ secrets.EMAIL_PASSWORD }}" > .env
+          echo "AUTH_FROM=${{ secrets.EMAIL_USER }}" > .env
+          echo "AUTH_SECRET={{ secrets.AUTH_SECRET }}" > .env
+
       - name: Build application
         run: npm run build
 
@@ -35,11 +47,11 @@ jobs:
           echo "EMAIL_SERVER_USER=${{ secrets.EMAIL_USER }}" > dist/.env
           echo "EMAIL_SERVER_PASSWORD=${{ secrets.EMAIL_PASSWORD }}" > dist/.env
           echo "AUTH_FROM=${{ secrets.EMAIL_USER }}" > dist/.env
+          echo "AUTH_SECRET={{ secrets.AUTH_SECRET }}" > dist/.env
 
       - name: Prepare package
         run: |
           cp package.json package-lock.json dist/
-
 
       - name: Deploy to Alwaysdata via SSH
         uses: appleboy/scp-action@master
